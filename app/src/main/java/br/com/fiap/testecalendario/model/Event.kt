@@ -8,5 +8,6 @@ data class Event(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val date: String,
-    val description: String
+    val description: String,
+    val type_event: String
 )

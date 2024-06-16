@@ -9,7 +9,7 @@ import br.com.fiap.testecalendario.model.Event
 
 @Database(
     entities = [Event::class],
-    version = 1
+    version = 2
 )
 @TypeConverters(Converters::class)
 abstract class EventDb : RoomDatabase(){
