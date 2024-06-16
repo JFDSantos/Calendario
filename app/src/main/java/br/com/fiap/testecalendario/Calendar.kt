@@ -20,10 +20,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -33,8 +30,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -66,7 +61,6 @@ import java.time.format.DateTimeFormatter
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun EventCalendarApp(navController: NavController) {
-    //val navController = rememberNavController()
     CalendarScreen()
 }
 
@@ -100,7 +94,7 @@ fun CalendarScreen() {
     Column(
         modifier = Modifier
             //.fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp, bottom = 55.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "Calendário", fontSize = 24.sp, modifier = Modifier.padding(8.dp))
