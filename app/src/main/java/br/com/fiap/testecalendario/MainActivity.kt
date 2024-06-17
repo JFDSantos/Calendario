@@ -8,8 +8,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -24,11 +27,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -84,17 +89,23 @@ fun MainContent() {
 //                }
 //
                 composable(
-                    route = "emailRead?sender={sender}&subject={subject}&content={content}&isReading={isReading}",
+                    route = "emailRead?sender={sender}&subject={subject}&content={content}&isImportant={isImportant}&isFavorite={isFavorite}&isReading={isReading}",
                     arguments = listOf(
                         navArgument("sender") { defaultValue = "" },
                         navArgument("subject") { defaultValue = "" },
                         navArgument("content") { defaultValue = "" },
-                        navArgument("isReading") { defaultValue = "" } // Assume false como padrão para isReading
+                        navArgument("isImportant") { defaultValue = "" },
+                        navArgument("isFavorite") { defaultValue = "" },
+                        navArgument("isReading") {
+                            defaultValue = ""
+                        } // Assume false como padrão para isReading
                     )
                 ) { backStackEntry ->
                     val sender = backStackEntry.arguments?.getString("sender") ?: ""
                     val subject = backStackEntry.arguments?.getString("subject") ?: ""
                     val content = backStackEntry.arguments?.getString("content") ?: ""
+                    val isImportant = backStackEntry.arguments?.getString("isImportant") ?: ""
+                    val isFavorite = backStackEntry.arguments?.getString("isFavorite") ?: ""
                     val isReading = backStackEntry.arguments?.getString("isReading") ?: ""
 
                     EmailReadScreen(
@@ -102,6 +113,8 @@ fun MainContent() {
                         sender = sender,
                         subject = subject,
                         content = content,
+                        isImportant = isImportant,
+                        isFavorite = isFavorite,
                         isReading = isReading
                     )
                 }
@@ -161,8 +174,18 @@ fun BottomNavigationMenu(navController: NavController) {
 
 @Composable
 fun SettingsScreen(navController: NavController) {
-    // Implementation of the settings screen
-    Text(text = "Configurações")
+    Column(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Configuração",
+            fontSize = 24.sp,
+            modifier = Modifier.padding(8.dp)
+        )
+    }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)

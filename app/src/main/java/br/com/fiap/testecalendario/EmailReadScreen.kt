@@ -1,5 +1,7 @@
 package br.com.fiap.testecalendario
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,28 +25,39 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import br.com.fiap.testecalendario.database.repository.EmailRepository
+import br.com.fiap.testecalendario.model.Email
+import java.time.LocalDate
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EmailReadScreen(
     navController: NavController,
     sender: String,
     subject: String,
     content: String,
+    isImportant: String,
+    isFavorite: String,
     isReading: String
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val ReadingOrWriting = isReading == "TRUE"
-    var isImportant by remember { mutableStateOf(false) }
-    var isFavorite by remember { mutableStateOf(false) }
+    var isImportantText = isImportant == "true"
+    var isFavoriteText = isFavorite == "true"
+    val today = LocalDate.now().toString()
+    val context = LocalContext.current
+    val emailRepository = EmailRepository(context)
 
+    var senderText by remember { mutableStateOf(sender) }
+    var subjectText by remember { mutableStateOf(subject) }
+    var contentText by remember { mutableStateOf(content) }
     Surface(
         color = Color.White, modifier = Modifier
             .fillMaxSize()
@@ -57,18 +70,18 @@ fun EmailReadScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             OutlinedTextField(
-                value = sender,
+                value = senderText,
                 readOnly = ReadingOrWriting,
-                onValueChange = {},
+                onValueChange = {senderText = it},
                 label = { Text("Remetente") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
-                value = subject,
+                value = subjectText,
                 readOnly = ReadingOrWriting,
-                onValueChange = {},
+                onValueChange = {subjectText = it},
                 label = { Text("Assunto") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -79,21 +92,21 @@ fun EmailReadScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Checkbox(
-                    checked = isImportant,
-                    onCheckedChange = { isImportant = it }
+                    checked = isImportantText,
+                    onCheckedChange = { isImportantText = it }
                 )
                 Text(text = "Importante")
 
                 Checkbox(
-                    checked = isFavorite,
-                    onCheckedChange = { isFavorite = it }
+                    checked = isFavoriteText,
+                    onCheckedChange = { isFavoriteText = it }
                 )
                 Text(text = "Favorito")
             }
             OutlinedTextField(
-                value = content,
+                value = contentText,
                 readOnly = ReadingOrWriting,
-                onValueChange = { },
+                onValueChange = { contentText = it},
                 label = { Text("Conteúdo") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,7 +121,7 @@ fun EmailReadScreen(
                 textStyle = TextStyle(fontSize = 16.sp)
             )
 
-            if (ReadingOrWriting){
+            if (ReadingOrWriting) {
                 Button(
                     onClick = { navController.navigate("email") },
                     modifier = Modifier
@@ -118,9 +131,22 @@ fun EmailReadScreen(
                 ) {
                     Text("Voltar")
                 }
-            }else{
+            } else {
                 Button(
-                    onClick = { /* Implementar ação de enviar e-mail */ },
+                    onClick = {
+                        val email = Email(
+                            0,
+                            senderText,
+                            subjectText,
+                            if(subjectText.length >= 20) subject.substring(0, 20) else subjectText,
+                            today,
+                            isImportantText,
+                            isFavoriteText,
+                            contentText
+                        )
+                        emailRepository.salvar(email)
+                        navController.navigate("email")
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
@@ -134,13 +160,3 @@ fun EmailReadScreen(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewEmailScreen() {
-    val nav = rememberNavController()
-    val sender = "JEFF"
-    val sub = "JEFF"
-    val con = "JEFF"
-    val isre = "TRUE"
-    EmailReadScreen(nav, sender, sub, con, isre)
-}

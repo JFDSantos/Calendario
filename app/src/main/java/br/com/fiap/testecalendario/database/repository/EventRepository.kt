@@ -3,7 +3,6 @@ package br.com.fiap.testecalendario.database.repository
 import android.content.Context
 import br.com.fiap.testecalendario.database.dao.EventDb
 import br.com.fiap.testecalendario.model.Event
-import java.time.LocalDate
 
 class EventRepository (contex : Context){
 

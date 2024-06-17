@@ -23,9 +23,11 @@ interface EmailDao {
     @Insert
     fun salvar(email: Email): Long
 //
-//    @Update
-//    fun atualizar(event: Event): Int
+    @Query("UPDATE tbl_email SET isImportant = :isImportant WHERE id = :id")
+    fun atualizarImportante(isImportant: Boolean, id: Int): Int
 
+    @Query("UPDATE tbl_email SET isFavorite = :isFavorite WHERE id = :id")
+    fun atualizarFavorito(isFavorite: Boolean, id: Int): Int
     @Delete
     fun excluir(email: Email): Int
 }

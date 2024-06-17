@@ -26,7 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +57,7 @@ fun EmailItem(
 ) {
 
     val context = LocalContext.current
-
+    val emailRepository = EmailRepository(context)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -90,7 +90,7 @@ fun EmailItem(
                         contentDescription = "Importante",
                         tint = Color.Blue,
                         modifier = Modifier.clickable {
-                            email.isImportant = !email.isImportant
+                            emailRepository.atualizarImportante(false,email.id)
                             atualizar()
                         }
                     )
@@ -101,7 +101,7 @@ fun EmailItem(
                         contentDescription = "Não Importante",
                         tint = Color.Gray,
                         modifier = Modifier.clickable {
-                            email.isImportant = !email.isImportant
+                            emailRepository.atualizarImportante(true,email.id)
                             atualizar()
                         }
                     )
@@ -113,7 +113,7 @@ fun EmailItem(
                         contentDescription = "Favorito",
                         tint = Color.Blue,
                         modifier = Modifier.clickable {
-                            email.isFavorite = !email.isFavorite
+                            emailRepository.atualizarFavorito(false,email.id)
                             atualizar()
                         }
                     )
@@ -124,7 +124,7 @@ fun EmailItem(
                         contentDescription = "Não Favorito",
                         tint = Color.Gray,
                         modifier = Modifier.clickable {
-                            email.isFavorite = !email.isFavorite
+                            emailRepository.atualizarFavorito(true,email.id)
                             atualizar()
                         }
                     )
@@ -138,12 +138,12 @@ fun EmailItem(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .weight(0.27f)
+                .weight(0.35f)
                 .fillMaxSize()
         ) {
             Text(text = email.date, color = Color.Gray, fontSize = 13.sp)
             IconButton(onClick = {
-                val emailRepository = EmailRepository(context)
+
                 emailRepository.excluir(email)
                 atualizar()
             }) {
@@ -159,7 +159,7 @@ fun EmailItem(
 
 @Composable
 fun EmailList(
-    emails: MutableState<List<Email>>,
+    emails: List<Email>, // Não precisa ser MutableState aqui
     onItemClick: (Email) -> Unit,
     atualizar: () -> Unit
 ) {
@@ -169,45 +169,39 @@ fun EmailList(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        for (email in emails.value) {
+        for (email in emails) {
             EmailItem(email = email, onItemClick, atualizar)
             Divider(color = Color.LightGray, thickness = 1.dp)
-
         }
     }
-
 }
-
 
 @Composable
 fun EmailScreen(navController: NavController) {
-
     val context = LocalContext.current
     val emailRepository = EmailRepository(context)
 
     // Gerenciar a lista de emails como MutableState
-    val emails = remember {
+    var emails by remember {
         mutableStateOf(emailRepository.buscar())
     }
 
     var showMenu by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("Todas") }
 
-    // Filtrar os emails com base no filtro selecionado
-    val filteredEmails by remember(emails.value, selectedFilter) {
-        mutableStateOf(
-            when (selectedFilter) {
-                "Favoritas" -> emailRepository.buscarEmailsFavoritos()
-                "Importantes" -> emailRepository.buscarEmailsImportantes()
-                else -> emailRepository.buscar()
-            }
-        )
+    // Atualiza a lista de emails com base no filtro selecionado
+    LaunchedEffect(selectedFilter) {
+        when (selectedFilter) {
+            "Favoritas" -> emails = emailRepository.buscarEmailsFavoritos()
+            "Importantes" -> emails = emailRepository.buscarEmailsImportantes()
+            else -> emails = emailRepository.buscar()
+        }
     }
 
     var selectedEmail by remember { mutableStateOf<Email?>(null) }
 
-    selectedEmail?.let{
-        navController.navigate("emailRead?sender=${selectedEmail!!.sender}&subject=${selectedEmail!!.subject}&content=${selectedEmail!!.content}&isReading=TRUE")
+    selectedEmail?.let {
+        navController.navigate("emailRead?sender=${selectedEmail!!.sender}&subject=${selectedEmail!!.subject}&content=${selectedEmail!!.content}&isImportant=${selectedEmail!!.isImportant}&isFavorite=${selectedEmail!!.isFavorite}&isReading=TRUE")
     }
 
     Column(
@@ -262,23 +256,24 @@ fun EmailScreen(navController: NavController) {
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Passamos a lista de emails filtrada diretamente para EmailList
         EmailList(
-            emails = remember { mutableStateOf(filteredEmails) },
+            emails = emails,
             onItemClick = { email ->
                 selectedEmail = email
             },
             atualizar = {
-                emails.value = emailRepository.buscar()
+                emails = emailRepository.buscar()
             }
         )
     }
 
     OverlayButton {
         navController.navigate("emailRead")
+        emails = emailRepository.buscar()
     }
 }
-
-
 
 @Composable
 fun OverlayButton(onClick: () -> Unit) {
@@ -287,7 +282,6 @@ fun OverlayButton(onClick: () -> Unit) {
             .fillMaxSize()
             .padding(bottom = 56.dp),
         contentAlignment = Alignment.BottomEnd
-
     ) {
         Button(
             onClick = onClick,
