@@ -70,5 +70,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.room.runtime)
     kapt(libs.androidx.room.compiler)
+    implementation("androidx.compose.material:material:1.6.8")
 
 }

@@ -90,7 +90,6 @@ fun CalendarScreen() {
     val listaEventos = remember {
         mutableStateOf(eventRepository.buscar())
     }
-    val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
             //.fillMaxSize()

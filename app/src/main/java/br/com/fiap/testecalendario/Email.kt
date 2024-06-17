@@ -12,17 +12,21 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,7 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,18 +46,18 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import br.com.fiap.testecalendario.R
-
-data class Email(
-    val sender: String,
-    val subject: String,
-    val preview: String,
-    val time: String,
-    var isImportant: Boolean = false,
-    val content: String
-)
+import br.com.fiap.testecalendario.database.repository.EmailRepository
+import br.com.fiap.testecalendario.model.Email
 
 @Composable
-fun EmailItem(email: Email, onItemClick: (Email) -> Unit) {
+fun EmailItem(
+    email: Email,
+    onItemClick: (Email) -> Unit,
+    atualizar: () -> Unit
+) {
+
+    val context = LocalContext.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -78,11 +85,48 @@ fun EmailItem(email: Email, onItemClick: (Email) -> Unit) {
                 )
                 if (email.isImportant) {
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Marcado",
-                        color = Color.Red,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.baseline_label_important_24),
+                        contentDescription = "Importante",
+                        tint = Color.Blue,
+                        modifier = Modifier.clickable {
+                            email.isImportant = !email.isImportant
+                            atualizar()
+                        }
+                    )
+                } else {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.baseline_label_important_outline_24),
+                        contentDescription = "Não Importante",
+                        tint = Color.Gray,
+                        modifier = Modifier.clickable {
+                            email.isImportant = !email.isImportant
+                            atualizar()
+                        }
+                    )
+                }
+                if (email.isFavorite) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.baseline_star_24),
+                        contentDescription = "Favorito",
+                        tint = Color.Blue,
+                        modifier = Modifier.clickable {
+                            email.isFavorite = !email.isFavorite
+                            atualizar()
+                        }
+                    )
+                } else {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.baseline_star_border_24),
+                        contentDescription = "Não Favorito",
+                        tint = Color.Gray,
+                        modifier = Modifier.clickable {
+                            email.isFavorite = !email.isFavorite
+                            atualizar()
+                        }
                     )
                 }
             }
@@ -97,12 +141,15 @@ fun EmailItem(email: Email, onItemClick: (Email) -> Unit) {
                 .weight(0.27f)
                 .fillMaxSize()
         ) {
-            Text(text = email.time, color = Color.Gray, fontSize = 13.sp)
+            Text(text = email.date, color = Color.Gray, fontSize = 13.sp)
             IconButton(onClick = {
+                val emailRepository = EmailRepository(context)
+                emailRepository.excluir(email)
+                atualizar()
             }) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Deletar evento"
+                    contentDescription = "Deletar email"
                 )
             }
         }
@@ -111,32 +158,56 @@ fun EmailItem(email: Email, onItemClick: (Email) -> Unit) {
 }
 
 @Composable
-fun EmailList(emails: List<Email>, onItemClick: (Email) -> Unit) {
-    LazyColumn() {
-        items(emails) { email ->
-            EmailItem(email = email) {
-                onItemClick(email)
-            }
+fun EmailList(
+    emails: MutableState<List<Email>>,
+    onItemClick: (Email) -> Unit,
+    atualizar: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        for (email in emails.value) {
+            EmailItem(email = email, onItemClick, atualizar)
             Divider(color = Color.LightGray, thickness = 1.dp)
+
         }
     }
-}
 
+}
 
 
 @Composable
 fun EmailScreen(navController: NavController) {
-    val emails = listOf(
-        Email("John Doe", "Meeting Reminder", "Don't forget our meeting at 10am", "10:00 AM", false, "Detailed content of the email..."),
-        Email("Jane Smith", "Sale Alert!", "Check out our latest sale on electronics", "9:30 AM", true, "Detailed content of the email..."),
-        Email("Service", "Your Order Confirmation", "Thank you for your purchase", "8:00 AM", false, "Detailed content of the email...")
-        // Add more emails here
-    )
+
+    val context = LocalContext.current
+    val emailRepository = EmailRepository(context)
+
+    // Gerenciar a lista de emails como MutableState
+    val emails = remember {
+        mutableStateOf(emailRepository.buscar())
+    }
+
+    var showMenu by remember { mutableStateOf(false) }
+    var selectedFilter by remember { mutableStateOf("Todas") }
+
+    // Filtrar os emails com base no filtro selecionado
+    val filteredEmails by remember(emails.value, selectedFilter) {
+        mutableStateOf(
+            when (selectedFilter) {
+                "Favoritas" -> emailRepository.buscarEmailsFavoritos()
+                "Importantes" -> emailRepository.buscarEmailsImportantes()
+                else -> emailRepository.buscar()
+            }
+        )
+    }
 
     var selectedEmail by remember { mutableStateOf<Email?>(null) }
 
-    if (selectedEmail != null) {
-        navController.navigate("emailRead/${selectedEmail!!.sender}/${selectedEmail!!.subject}/${selectedEmail!!.content}/TRUE")
+    selectedEmail?.let{
+        navController.navigate("emailRead?sender=${selectedEmail!!.sender}&subject=${selectedEmail!!.subject}&content=${selectedEmail!!.content}&isReading=TRUE")
     }
 
     Column(
@@ -149,18 +220,66 @@ fun EmailScreen(navController: NavController) {
             text = "Email",
             fontSize = 24.sp,
             modifier = Modifier.padding(8.dp)
-
         )
-        EmailList(emails = emails) { email ->
-            selectedEmail = email
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentSize(Alignment.TopEnd)
+        ) {
+            Icon(
+                imageVector = ImageVector.vectorResource(id = R.drawable.baseline_filter_list_24),
+                contentDescription = "Filtrar",
+                tint = Color.Gray,
+                modifier = Modifier
+                    .clickable { showMenu = !showMenu }
+                    .padding(horizontal = 12.dp)
+            )
+
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false }
+            ) {
+                DropdownMenuItem(onClick = {
+                    selectedFilter = "Todas"
+                    showMenu = false
+                }) {
+                    Text("Todas")
+                }
+                DropdownMenuItem(onClick = {
+                    selectedFilter = "Favoritas"
+                    showMenu = false
+                }) {
+                    Text("Favoritas")
+                }
+                DropdownMenuItem(onClick = {
+                    selectedFilter = "Importantes"
+                    showMenu = false
+                }) {
+                    Text("Importantes")
+                }
+            }
         }
 
-        OverlayButton {
-            navController.navigate("emailRead/${""}/${""}/${""}/FALSE")
-        }
+        Spacer(modifier = Modifier.height(16.dp))
+        EmailList(
+            emails = remember { mutableStateOf(filteredEmails) },
+            onItemClick = { email ->
+                selectedEmail = email
+            },
+            atualizar = {
+                emails.value = emailRepository.buscar()
+            }
+        )
     }
 
+    OverlayButton {
+        navController.navigate("emailRead")
+    }
 }
+
+
+
 @Composable
 fun OverlayButton(onClick: () -> Unit) {
     Box(
@@ -174,15 +293,14 @@ fun OverlayButton(onClick: () -> Unit) {
             onClick = onClick,
             modifier = Modifier.padding(16.dp)
         ) {
-            //val icon = painterResource(id = R.drawable.ic_baseline_add_24)
-            //con(icon, contentDescription = "Add",modifier = Modifier.fillMaxWidth())
-            Text(text = "+",textAlign = TextAlign.Center, fontSize = 35.sp)
+            Text(text = "+", textAlign = TextAlign.Center, fontSize = 35.sp)
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    val navController =  rememberNavController()
+    val navController = rememberNavController()
     EmailScreen(navController)
 }

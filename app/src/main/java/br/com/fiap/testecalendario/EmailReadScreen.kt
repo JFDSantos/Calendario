@@ -2,6 +2,7 @@ package br.com.fiap.testecalendario
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,10 +11,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,6 +42,9 @@ fun EmailReadScreen(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val ReadingOrWriting = isReading == "TRUE"
+    var isImportant by remember { mutableStateOf(false) }
+    var isFavorite by remember { mutableStateOf(false) }
+
     Surface(
         color = Color.White, modifier = Modifier
             .fillMaxSize()
@@ -64,7 +73,23 @@ fun EmailReadScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Checkbox(
+                    checked = isImportant,
+                    onCheckedChange = { isImportant = it }
+                )
+                Text(text = "Importante")
 
+                Checkbox(
+                    checked = isFavorite,
+                    onCheckedChange = { isFavorite = it }
+                )
+                Text(text = "Favorito")
+            }
             OutlinedTextField(
                 value = content,
                 readOnly = ReadingOrWriting,

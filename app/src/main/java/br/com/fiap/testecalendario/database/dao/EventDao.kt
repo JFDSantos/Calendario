@@ -5,8 +5,6 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import br.com.fiap.testecalendario.model.Event
-import kotlinx.coroutines.flow.Flow
-import java.time.LocalDate
 
 @Dao
 interface EventDao {

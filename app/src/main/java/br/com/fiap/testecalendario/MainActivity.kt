@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -65,22 +64,45 @@ fun MainContent() {
                 composable(route = "calendar") { EventCalendarApp(navController) }
                 composable(route = "email") { EmailScreen(navController) }
                 composable(route = "settings") { SettingsScreen(navController) }
+//                composable(
+//                    route = "emailRead/{sender}/{subject}/{content}/{isReading}",
+//                    arguments = listOf(
+//                        navArgument("sender") { type = NavType.StringType},
+//                        navArgument("subject") { type = NavType.StringType},
+//                        navArgument("content") { type = NavType.StringType },
+//                        navArgument("isReading") { type = NavType.StringType }
+//                    )
+//                ) {
+//                    //val isReading = it.arguments?.getString("sender")
+//                    EmailReadScreen(
+//                        navController,
+//                        it.arguments?.getString("sender", " ")!!,
+//                        it.arguments?.getString("subject"," ")!!,
+//                        it.arguments?.getString("content"," ")!!,
+//                        it.arguments?.getString("isReading"," ")!!
+//                    )
+//                }
+//
                 composable(
-                    route = "emailRead/{sender}/{subject}/{content}/{isReading}",
+                    route = "emailRead?sender={sender}&subject={subject}&content={content}&isReading={isReading}",
                     arguments = listOf(
-                        navArgument("sender") { type = NavType.StringType},
-                        navArgument("subject") { type = NavType.StringType},
-                        navArgument("content") { type = NavType.StringType },
-                        navArgument("isReading") { type = NavType.StringType }
+                        navArgument("sender") { defaultValue = "" },
+                        navArgument("subject") { defaultValue = "" },
+                        navArgument("content") { defaultValue = "" },
+                        navArgument("isReading") { defaultValue = "" } // Assume false como padrão para isReading
                     )
-                ) {
-                    //val isReading = it.arguments?.getString("sender")
+                ) { backStackEntry ->
+                    val sender = backStackEntry.arguments?.getString("sender") ?: ""
+                    val subject = backStackEntry.arguments?.getString("subject") ?: ""
+                    val content = backStackEntry.arguments?.getString("content") ?: ""
+                    val isReading = backStackEntry.arguments?.getString("isReading") ?: ""
+
                     EmailReadScreen(
-                        navController,
-                        it.arguments?.getString("sender", " ")!!,
-                        it.arguments?.getString("subject"," ")!!,
-                        it.arguments?.getString("content"," ")!!,
-                        it.arguments?.getString("isReading"," ")!!
+                        navController = navController,
+                        sender = sender,
+                        subject = subject,
+                        content = content,
+                        isReading = isReading
                     )
                 }
 
