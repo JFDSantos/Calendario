@@ -49,8 +49,8 @@ fun EmailReadScreen(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val ReadingOrWriting = isReading == "TRUE"
-    var isImportantText = isImportant == "true"
-    var isFavoriteText = isFavorite == "true"
+    var isImportantText by remember {  mutableStateOf(isImportant == "true") }
+    var isFavoriteText by remember {  mutableStateOf(isFavorite == "true") }
     val today = LocalDate.now().toString()
     val context = LocalContext.current
     val emailRepository = EmailRepository(context)
@@ -93,13 +93,15 @@ fun EmailReadScreen(
             ) {
                 Checkbox(
                     checked = isImportantText,
-                    onCheckedChange = { isImportantText = it }
+                    onCheckedChange = { isImportantText = it },
+                    enabled = !ReadingOrWriting
                 )
                 Text(text = "Importante")
 
                 Checkbox(
                     checked = isFavoriteText,
-                    onCheckedChange = { isFavoriteText = it }
+                    onCheckedChange = { isFavoriteText = it },
+                    enabled = !ReadingOrWriting
                 )
                 Text(text = "Favorito")
             }
