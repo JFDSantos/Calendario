@@ -159,7 +159,7 @@ fun EmailItem(
 
 @Composable
 fun EmailList(
-    emails: List<Email>, // Não precisa ser MutableState aqui
+    emails: List<Email>,
     onItemClick: (Email) -> Unit,
     atualizar: () -> Unit
 ) {
@@ -181,7 +181,6 @@ fun EmailScreen(navController: NavController) {
     val context = LocalContext.current
     val emailRepository = EmailRepository(context)
 
-    // Gerenciar a lista de emails como MutableState
     var emails by remember {
         mutableStateOf(emailRepository.buscar())
     }
@@ -189,7 +188,6 @@ fun EmailScreen(navController: NavController) {
     var showMenu by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("Todas") }
 
-    // Atualiza a lista de emails com base no filtro selecionado
     LaunchedEffect(selectedFilter) {
         when (selectedFilter) {
             "Favoritas" -> emails = emailRepository.buscarEmailsFavoritos()
@@ -257,7 +255,6 @@ fun EmailScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Passamos a lista de emails filtrada diretamente para EmailList
         EmailList(
             emails = emails,
             onItemClick = { email ->

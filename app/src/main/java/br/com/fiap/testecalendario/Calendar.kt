@@ -64,7 +64,7 @@ fun EventCalendarApp(navController: NavController) {
     CalendarScreen()
 }
 
-// Em CalendarScreen
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CalendarScreen() {
@@ -77,7 +77,6 @@ fun CalendarScreen() {
 
     var selectedEventType by remember { mutableStateOf("task") }
     val eventTypes = listOf("task", "meeting", "other")
-    // State para controlar a exibição do popup
     var isDialogOpen by remember { mutableStateOf(false) }
     var selectedEvent by remember { mutableStateOf<Event?>(null) }
     var isEventDetailDialogOpen by remember { mutableStateOf(false) }
@@ -92,14 +91,13 @@ fun CalendarScreen() {
     }
     Column(
         modifier = Modifier
-            //.fillMaxSize()
             .padding(16.dp, bottom = 55.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "Calendário", fontSize = 24.sp, modifier = Modifier.padding(8.dp))
         MonthCarousel(selectedMonth = selectedMonth, onMonthSelected = { selectedMonth = it })
         CalendarView(
-            selectedDate = selectedDate, // Passar selectedDate para CalendarView
+            selectedDate = selectedDate,
             onDateSelected = { date ->
                 selectedDate = date
                 isSelect = true
@@ -108,13 +106,12 @@ fun CalendarScreen() {
             selectedMonth = selectedMonth,
             atualizar = { listaEventos.value = eventRepository.buscar()}
         )
-        // Popup para adicionar evento
+
         if (isDialogOpen) {
             AlertDialog(
                 onDismissRequest = {
-                    // Fechar o popup ao clicar fora
                     isDialogOpen = false
-                    newEventDescription = TextFieldValue() // Limpar campo de texto ao fechar
+                    newEventDescription = TextFieldValue()
                 },
                 title = { Text("Adicionar Evento") },
                 text = {
@@ -126,7 +123,6 @@ fun CalendarScreen() {
                             modifier = Modifier.fillMaxWidth()
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        // Dropdown for selecting event type
                         var expanded by remember { mutableStateOf(false) }
                         Box(
                             modifier = Modifier
@@ -160,8 +156,7 @@ fun CalendarScreen() {
                                 val event = Event(0, selectedDate!!.toString(), newEventDescription.text, selectedEventType )
 
                                 eventRepository.salvar(event)
-                                isDialogOpen = false // Fechar o popup após adicionar o evento
-                                newEventDescription = TextFieldValue() // Limpar campo de texto
+                                newEventDescription = TextFieldValue()
                             }
                         }
                     ) {
@@ -171,8 +166,8 @@ fun CalendarScreen() {
                 dismissButton = {
                     Button(
                         onClick = {
-                            isDialogOpen = false // Fechar o popup sem adicionar evento
-                            newEventDescription = TextFieldValue() // Limpar campo de texto
+                            isDialogOpen = false
+                            newEventDescription = TextFieldValue()
                         }
                     ) {
                         Text("Cancelar")
@@ -183,7 +178,7 @@ fun CalendarScreen() {
         if (isSelect) {
             Button(
                 onClick = {
-                    isDialogOpen = true // Abrir o popup ao selecionar uma data
+                    isDialogOpen = true
                 }
             ) {
                 Text("Adicionar Evento")
@@ -196,16 +191,14 @@ fun CalendarScreen() {
                 isEventDetailDialogOpen = true
             })
         }
-        // Lista de eventos
-        //Spacer(modifier = Modifier.height(16.dp))
+
     }
 
-    // Popup para exibir detalhes do evento
     if (isEventDetailDialogOpen) {
         AlertDialog(
             onDismissRequest = {
                 isEventDetailDialogOpen = false
-                selectedEvent = null // Limpar o evento selecionado ao fechar o popup
+                selectedEvent = null
             },
             title = { Text("Detalhes do Evento") },
             text = {
@@ -221,7 +214,7 @@ fun CalendarScreen() {
                 Button(
                     onClick = {
                         isEventDetailDialogOpen = false
-                        selectedEvent = null // Limpar o evento selecionado ao fechar o popup
+                        selectedEvent = null
                     }
                 ) {
                     Text("Fechar")
@@ -361,7 +354,6 @@ fun CalendarView(
                                     else -> Color.Black
                                 })
 
-                                // Mostrar eventos em datas específicas
                                 if (events.contains(date.toString())) {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Box(
